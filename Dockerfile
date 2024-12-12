@@ -1,14 +1,20 @@
 # use alpine as base for searx and set workdir as well as env vars
 FROM alpine:3.20 AS base
 
-ENV GID=991 UID=991 UWSGI_WORKERS=1 UWSGI_THREADS=16 IMAGE_PROXY=true REDIS_URL= LIMITER= BASE_URL= CAPTCHA= AUTHORIZED_API= NAME= SEARCH_DEFAULT_LANG= SEARCH_ENGINE_ACCESS_DENIED= PUBLIC_INSTANCE= \
-OPENMETRICS_PASSWORD= \
-PRIVACYPOLICY= \
-DONATION_URL= \
-CONTACT=https://vojk.au \
-FOOTER_MESSAGE= \
-ISSUE_URL=https://github.com/privau/searxng/issues GIT_URL=https://github.com/privau/searxng GIT_BRANCH=main \
-UPSTREAM_COMMIT=0245e82bd24fce9a0fe5194dcac9241e8d0efdc7
+ENV GID=991 \
+    UID=991 \
+    UWSGI_WORKERS=1 \
+    UWSGI_THREADS=16 \
+    IMAGE_PROXY=true \   
+    BASE_URL=https://s.sagarb.com/ \
+    NAME="Sorvx" \
+    SEARCH_ENGINE_ACCESS_DENIED=0 \
+    DONATION_URL=https://go.sagarb.com/donate/ \
+    CONTACT=https://sagarb.com/ \
+    ISSUE_URL=https://github.com/privau/searxng/issues \
+    GIT_URL=https://github.com/sagarbhusal0/search-engine-script \
+    GIT_BRANCH=main \
+    UPSTREAM_COMMIT=latest 
 
 COPY ./requirements.txt .
 
@@ -43,14 +49,15 @@ FROM base AS searxng
 
 WORKDIR /usr/local/searxng
 
+
 # install build deps and git clone searxng as well as setting the version
 RUN addgroup -g ${GID} searxng \
-&& adduser -u ${UID} -D -h /usr/local/searxng -s /bin/sh -G searxng searxng \
-&& git config --global --add safe.directory /usr/local/searxng \
-&& git clone https://github.com/searxng/searxng . \
-&& git reset --hard ${UPSTREAM_COMMIT} \
-&& chown -R searxng:searxng . \
-&& su searxng -c "/usr/bin/python3 -m searx.version freeze"
+    && adduser -u ${UID} -D -h /usr/local/searxng -s /bin/sh -G searxng searxng \
+    && git config --global --add safe.directory /usr/local/searxng \
+    && git clone https://github.com/sagarbhusal0/main-search-engine . \
+    && if [ "${UPSTREAM_COMMIT}" != "latest" ]; then git reset --hard ${UPSTREAM_COMMIT}; fi \
+    && chown -R searxng:searxng . \
+    && su searxng -c "/usr/bin/python3 -m searx.version freeze"
 
 # copy custom simple themes
 COPY ./out/css/* searx/static/themes/simple/css/
